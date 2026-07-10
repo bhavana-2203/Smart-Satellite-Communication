@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SatCom-AI — Satellite Communication Agent</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+  <aside id="sidebar">
+    <div id="sidebar-header">
+      <div class="logo">
+        <!-- Satellite SVG icon -->
+        <svg class="logo-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="36" rx="8" fill="#0a0e1a"/>
+          <circle cx="18" cy="18" r="4" fill="#00b4d8"/>
+          <rect x="3"  y="17" width="10" height="2" rx="1" fill="#48cae4"/>
+          <rect x="23" y="17" width="10" height="2" rx="1" fill="#48cae4"/>
+          <rect x="17"  y="3" width="2" height="10" rx="1" fill="#48cae4"/>
+          <rect x="17" y="23" width="2" height="10" rx="1" fill="#48cae4"/>
+          <line x1="7" y1="7" x2="12" y2="12" stroke="#0077b6" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="29" y1="7" x2="24" y2="12" stroke="#0077b6" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="7" y1="29" x2="12" y2="24" stroke="#0077b6" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="29" y1="29" x2="24" y2="24" stroke="#0077b6" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div class="logo-text">SatCom-AI</div>
+          <div class="logo-sub">Satellite Agent</div>
+        </div>
+      </div>
+      <div class="model-badge">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="model-label">ibm/granite-4-h-small</span>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav id="sidebar-nav">
+      <div class="nav-section-title">Navigation</div>
+      <button class="nav-btn active" id="nav-chat">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </button>
+    </nav>
+
+    <!-- Suggestions -->
+    <div id="suggestions-panel">
+      <div class="suggestions-title">Quick Prompts</div>
+      <div id="suggestions-list">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="sidebar-footer">
+      <div class="footer-row">
+        <span>Region</span>
+        <span class="footer-val">eu-de (Frankfurt)</span>
+      </div>
+      <div class="footer-row">
+        <span>Session</span>
+        <span class="footer-val" id="session-label">—</span>
+      </div>
+      <div class="footer-row">
+        <span>Messages</span>
+        <span class="footer-val" id="msg-count">0</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══════════════════════════════════════════════════════════════ -->
+  <main id="main">
+
+    <!-- Topbar -->
+    <div id="topbar">
+      <div id="topbar-left">
+        <button id="menu-toggle" aria-label="Toggle sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div>
+          <div class="page-title">Satellite Communication Agent</div>
+          <div class="page-subtitle">Powered by IBM Granite-4 · WatsonX AI</div>
+        </div>
+      </div>
+      <div id="topbar-right">
+        <button class="icon-btn" id="clear-btn" title="Clear conversation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Clear
+        </button>
+        <button class="icon-btn" id="export-btn" title="Export conversation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat area -->
+    <div id="chat-container">
+      <!-- Welcome screen -->
+      <div id="welcome">
+        <svg class="big-icon" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="38" stroke="#1e3a5f" stroke-width="2"/>
+          <circle cx="40" cy="40" r="8" fill="#00b4d8" opacity="0.9"/>
+          <rect x="8"  y="39" width="20" height="2" rx="1" fill="#48cae4"/>
+          <rect x="52" y="39" width="20" height="2" rx="1" fill="#48cae4"/>
+          <rect x="39"  y="8" width="2" height="20" rx="1" fill="#48cae4"/>
+          <rect x="39" y="52" width="2" height="20" rx="1" fill="#48cae4"/>
+          <circle cx="40" cy="40" r="20" stroke="#0d3b5e" stroke-width="1" stroke-dasharray="3 4"/>
+          <circle cx="40" cy="40" r="28" stroke="#0d2a40" stroke-width="1" stroke-dasharray="2 5"/>
+        </svg>
+        <h2>Welcome to SatCom-AI</h2>
+        <p>Your expert satellite communication assistant. Ask about orbital mechanics, link budgets, frequency bands, protocols, and everything in between.</p>
+        <div class="welcome-cards">
+          <button class="welcome-card" data-prompt="Explain the link budget calculation for a Ku-band GEO satellite">
+            <span class="welcome-card-icon">📡</span>
+            <div class="welcome-card-title">Link Budget</div>
+            Ku-band GEO satellite link budget explained
+          </button>
+          <button class="welcome-card" data-prompt="What is the difference between LEO, MEO, and GEO orbits?">
+            <span class="welcome-card-icon">🌍</span>
+            <div class="welcome-card-title">Orbital Mechanics</div>
+            LEO vs MEO vs GEO orbit comparison
+          </button>
+          <button class="welcome-card" data-prompt="How does DVB-S2X improve upon DVB-S2 for satellite broadband?">
+            <span class="welcome-card-icon">📶</span>
+            <div class="welcome-card-title">DVB-S2X Protocol</div>
+            Next-gen modulation & coding schemes
+          </button>
+          <button class="welcome-card" data-prompt="Explain rain fade attenuation and how to mitigate it in Ka-band systems">
+            <span class="welcome-card-icon">🌧️</span>
+            <div class="welcome-card-title">Rain Fade</div>
+            Ka-band attenuation & mitigation
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div id="input-area">
+      <div class="input-wrapper">
+        <textarea
+          id="user-input"
+          rows="1"
+          placeholder="Ask about satellite communications... (Shift+Enter for new line)"
+          autocomplete="off"
+          spellcheck="true"
+        ></textarea>
+        <button id="send-btn" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Send
+        </button>
+      </div>
+      <div class="input-hint">IBM Granite-4 · WatsonX AI · eu-de Frankfurt</div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
