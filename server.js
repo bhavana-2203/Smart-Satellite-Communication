@@ -25,18 +25,30 @@ async function getIAMToken() {
   if (iamTokenCache && Date.now() < iamTokenExpiry) {
     return iamTokenCache;
   }
-  const response = await axios.post(
-    IAM_URL,
-    new URLSearchParams({
-      grant_type: 'urn:ibm:params:oauth:grant-type:apikey',
-      apikey: IBM_API_KEY,
-    }),
-    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-  );
-  iamTokenCache  = response.data.access_token;
-  // Expire 5 minutes before actual expiry
-  iamTokenExpiry = Date.now() + (response.data.expires_in - 300) * 1000;
-  return iamTokenCache;
+  try {
+    const response = await axios.post(
+      IAM_URL,
+      new URLSearchParams({
+        grant_type: 'urn:ibm:params:oauth:grant-type:apikey',
+        apikey: IBM_API_KEY,
+      }),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+    iamTokenCache  = response.data.access_token;
+    iamTokenExpiry = Date.now() + (response.data.expires_in - 300) * 1000;
+    return iamTokenCache;
+  } catch (err) {
+    const iamError = err.response?.data;
+    const code     = iamError?.errorCode || '';
+    const msg      = iamError?.errorMessage || err.message;
+    if (code === 'BXNIM0462E' || msg.includes('disabled')) {
+      throw new Error('IBM API key is disabled. Generate a new key at https://cloud.ibm.com/iam/apikeys and update config.env');
+    }
+    if (code === 'BXNIM0415E' || msg.includes('not found') || msg.includes('invalid')) {
+      throw new Error('IBM API key is invalid. Check your API key in config.env');
+    }
+    throw new Error(`IBM IAM authentication failed: ${msg}`);
+  }
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
@@ -171,10 +183,18 @@ app.post('/api/chat', async (req, res) => {
     });
   } catch (err) {
     console.error('WatsonX API Error:', err.response?.data || err.message);
-    const status  = err.response?.status || 500;
-    const detail  = err.response?.data?.errors?.[0]?.message ||
-                    err.response?.data?.error ||
-                    err.message;
+
+    // IAM / config errors thrown as plain Error (no response object)
+    if (!err.response) {
+      return res.status(503).json({ error: err.message });
+    }
+
+    const status = err.response.status || 500;
+    const body   = err.response.data || {};
+    const detail = body.errors?.[0]?.message ||
+                   body.error ||
+                   body.message ||
+                   err.message;
     return res.status(status).json({ error: `AI service error: ${detail}` });
   }
 });
